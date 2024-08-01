@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 public class LibrarySystem implements Borrowable, Returnable {
     private final Map<String, Book> books = new ConcurrentHashMap<>();
     private final Map<String, User> users = new ConcurrentHashMap<>();
-    private final Map<String, List<Book>> userBorrowedBooks = new ConcurrentHashMap<>();
+    private final Map<User, List<Book>> borrowedBooks = new ConcurrentHashMap<>();
 
     public LibrarySystem() {
         books.put("978-3-16-148410-0", new Book("978-3-16-148410-0", "The Great Gatsby", "F. Scott Fitzgerald", true));
@@ -26,19 +26,18 @@ public class LibrarySystem implements Borrowable, Returnable {
             return;
         }
 
+        // Update book availability
         Book updatedBook = book.withAvailability(false);
         books.put(updatedBook.isbn(), updatedBook);
 
-        // Update borrowed books for the user
-        List<Book> userBooks = userBorrowedBooks.computeIfAbsent(user.email(), k -> new ArrayList<>());
-        
-        // Ensure that the book is added only once
-        if (userBooks.stream().noneMatch(b -> b.isbn().equals(updatedBook.isbn()))) {
+        // Update user's borrowed books
+        List<Book> userBooks = borrowedBooks.computeIfAbsent(user, k -> new ArrayList<>());
+        if (!userBooks.contains(book)) {
             userBooks.add(updatedBook);
         }
-
-        // Update the User object in the users map
-        User updatedUser = user.borrowBook(updatedBook);
+        
+        // Update the user in the users map
+        User updatedUser = user.withBorrowedBooks(userBooks);
         users.put(user.email(), updatedUser);
 
         System.out.println("Book borrowed successfully: " + updatedBook);
@@ -51,24 +50,26 @@ public class LibrarySystem implements Borrowable, Returnable {
             return;
         }
 
-        List<Book> userBooks = userBorrowedBooks.get(user.email());
-        if (userBooks == null || userBooks.stream().noneMatch(b -> b.isbn().equals(book.isbn()))) {
+        List<Book> userBooks = borrowedBooks.get(user);
+        if (userBooks == null || !userBooks.contains(book)) {
             System.out.println("User did not borrow this book.");
             return;
         }
 
-        userBooks.removeIf(b -> b.isbn().equals(book.isbn()));
+        // Remove the book from user's borrowed list
+        userBooks.remove(book);
         if (userBooks.isEmpty()) {
-            userBorrowedBooks.remove(user.email());
+            borrowedBooks.remove(user);
         } else {
-            userBorrowedBooks.put(user.email(), userBooks);
+            borrowedBooks.put(user, userBooks);
         }
 
+        // Update book availability
         Book updatedBook = book.withAvailability(true);
         books.put(updatedBook.isbn(), updatedBook);
 
-        // Update the User object in the users map
-        User updatedUser = user.returnBook(book);
+        // Update the user in the users map
+        User updatedUser = user.withBorrowedBooks(userBooks);
         users.put(user.email(), updatedUser);
 
         System.out.println("Book returned successfully: " + updatedBook);
@@ -94,19 +95,18 @@ public class LibrarySystem implements Borrowable, Returnable {
 
     public void addUser(User user) {
         users.put(user.email(), user);
-        userBorrowedBooks.put(user.email(), new ArrayList<>(user.borrowedBooks()));
         System.out.println("New user added: " + user);
     }
 
     public void removeUser(User user) {
         users.remove(user.email());
-        userBorrowedBooks.remove(user.email());
+        borrowedBooks.remove(user);
         System.out.println("User removed: " + user);
     }
 
     public void removeAllUsers() {
         users.clear();
-        userBorrowedBooks.clear();
+        borrowedBooks.clear();
         System.out.println("All users removed.");
     }
 
@@ -141,7 +141,7 @@ public class LibrarySystem implements Borrowable, Returnable {
     }
 
     public void printUserBorrowedBooks(User user) {
-        List<Book> books = userBorrowedBooks.get(user.email());
+        List<Book> books = borrowedBooks.get(user);
 
         if (books == null || books.isEmpty()) {
             System.out.println("No borrowed books for user: " + user);

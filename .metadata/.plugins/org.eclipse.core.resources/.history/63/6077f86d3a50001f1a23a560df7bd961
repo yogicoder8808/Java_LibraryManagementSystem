@@ -31,15 +31,7 @@ public class LibrarySystem implements Borrowable, Returnable {
 
         // Update borrowed books for the user
         List<Book> userBooks = userBorrowedBooks.computeIfAbsent(user.email(), k -> new ArrayList<>());
-        
-        // Ensure that the book is added only once
-        if (userBooks.stream().noneMatch(b -> b.isbn().equals(updatedBook.isbn()))) {
-            userBooks.add(updatedBook);
-        }
-
-        // Update the User object in the users map
-        User updatedUser = user.borrowBook(updatedBook);
-        users.put(user.email(), updatedUser);
+        userBooks.add(updatedBook);
 
         System.out.println("Book borrowed successfully: " + updatedBook);
     }
@@ -52,12 +44,12 @@ public class LibrarySystem implements Borrowable, Returnable {
         }
 
         List<Book> userBooks = userBorrowedBooks.get(user.email());
-        if (userBooks == null || userBooks.stream().noneMatch(b -> b.isbn().equals(book.isbn()))) {
+        if (userBooks == null || !userBooks.contains(book)) {
             System.out.println("User did not borrow this book.");
             return;
         }
 
-        userBooks.removeIf(b -> b.isbn().equals(book.isbn()));
+        userBooks.remove(book);
         if (userBooks.isEmpty()) {
             userBorrowedBooks.remove(user.email());
         } else {
@@ -66,10 +58,6 @@ public class LibrarySystem implements Borrowable, Returnable {
 
         Book updatedBook = book.withAvailability(true);
         books.put(updatedBook.isbn(), updatedBook);
-
-        // Update the User object in the users map
-        User updatedUser = user.returnBook(book);
-        users.put(user.email(), updatedUser);
 
         System.out.println("Book returned successfully: " + updatedBook);
     }
@@ -94,7 +82,6 @@ public class LibrarySystem implements Borrowable, Returnable {
 
     public void addUser(User user) {
         users.put(user.email(), user);
-        userBorrowedBooks.put(user.email(), new ArrayList<>(user.borrowedBooks()));
         System.out.println("New user added: " + user);
     }
 
