@@ -1,0 +1,321 @@
+package libraryManagement;
+
+package librarymanagement;
+
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        var scanner = new Scanner(System.in); // Java 10
+        var librarySystem = new LibrarySystem();
+        User currentUser = null; // To track the currently logged-in user
+        boolean isAdmin = false; // To track if the logged-in user is an admin
+
+        while (true) {
+            System.out.println("Welcome to Library Management System!");
+            System.out.println("0. Exit");
+            System.out.println("1. Login");
+            System.out.println("2. New User");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 0:
+                    System.out.println("Thank you for using the Library Management System. Goodbye!");
+                    scanner.close();
+                    return;
+
+                case 1:
+                case 2:
+                    var result = handleUserOrAdmin(scanner, librarySystem, choice == 2);
+                    if (result != null) {
+                        currentUser = result.getUser();
+                        isAdmin = result.isAdmin();
+                        handleRoleMenu(scanner, librarySystem, currentUser, isAdmin);
+                    }
+                    break;
+
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static LoginResult handleUserOrAdmin(Scanner scanner, LibrarySystem librarySystem, boolean isNewUser) {
+        String email;
+        User user = null;
+        boolean isAdmin = false;
+
+        if (isNewUser) {
+            System.out.print("Enter user name: ");
+            String name = scanner.nextLine();
+            System.out.print("Enter Phone number: ");
+            String phoneNumber = scanner.nextLine();
+            System.out.print("Enter Email ID: ");
+            email = scanner.nextLine();
+
+            user = new User(name, email, phoneNumber);
+
+            if (librarySystem.findUserByEmail(email).isPresent()) {
+                System.out.println("User already exists.");
+                return null;
+            } else {
+                librarySystem.addUser(user);
+                System.out.println("New user added: " + user);
+            }
+        } else {
+            System.out.print("Enter Email ID: ");
+            email = scanner.nextLine();
+
+            user = librarySystem.findUserByEmail(email).orElse(null);
+
+            if (user == null) {
+                System.out.println("User not found. Please register as a new user.");
+                return null;
+            }
+        }
+
+        System.out.println("Are you an:");
+        System.out.println("1. Admin");
+        System.out.println("2. Normal User");
+
+        int roleChoice = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        switch (roleChoice) {
+            case 1:
+                if (verifyAdminPassword(scanner)) {
+                    isAdmin = true;
+                } else {
+                    System.out.println("Invalid admin password. Access denied.");
+                    return null;
+                }
+                break;
+
+            case 2:
+                isAdmin = false;
+                break;
+
+            default:
+                System.out.println("Invalid choice. Returning to main menu.");
+                return null;
+        }
+
+        return new LoginResult(user, isAdmin);
+    }
+
+    private static boolean verifyAdminPassword(Scanner scanner) {
+        final String ADMIN_PASSWORD = "admin123"; // Example password; ideally should be securely stored
+        System.out.print("Enter admin password: ");
+        String inputPassword = scanner.nextLine();
+        return ADMIN_PASSWORD.equals(inputPassword);
+    }
+
+    private static void handleRoleMenu(Scanner scanner, LibrarySystem librarySystem, User user, boolean isAdmin) {
+        if (user == null) return;
+
+        if (isAdmin) {
+            showAdminMenu(scanner, librarySystem);
+        } else {
+            showUserMenu(scanner, librarySystem, user);
+        }
+    }
+
+    private static void showAdminMenu(Scanner scanner, LibrarySystem librarySystem) {
+        while (true) {
+            System.out.println("Admin Menu:");
+            System.out.println("1. View books");
+            System.out.println("2. Add book");
+            System.out.println("3. Delete book");
+            System.out.println("4. Delete all data");
+            System.out.println("5. Search");
+            System.out.println("6. View orders");
+            System.out.println("7. View users"); // New option to view users
+            System.out.println("8. Exit");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    librarySystem.viewBooks();
+                    break;
+
+                case 2:
+                    addBook(scanner, librarySystem);
+                    break;
+
+                case 3:
+                    deleteBook(scanner, librarySystem);
+                    break;
+
+                case 4:
+                    librarySystem.deleteAllBooks();
+                    librarySystem.removeAllUsers();
+                    break;
+
+                case 5:
+                    searchBooks(scanner, librarySystem);
+                    break;
+
+                case 6:
+                    viewOrders(scanner, librarySystem);
+                    break;
+
+                case 7:
+                    librarySystem.viewAllUsers(); // New method to view users
+                    break;
+
+                case 8:
+                    System.out.println("Are you sure you want to quit?");
+                    System.out.println("1. Yes");
+                    System.out.println("2. Main menu");
+
+                    int exitChoice = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
+
+                    if (exitChoice == 1) {
+                        System.out.println("Thank you for using the Library Management System. Goodbye!");
+                        return;
+                    } else {
+                        return; // Return to main menu
+                    }
+
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void showUserMenu(Scanner scanner, LibrarySystem librarySystem, User user) {
+        while (true) {
+            System.out.println("User Menu:");
+            System.out.println("1. View books");
+            System.out.println("2. Borrow book");
+            System.out.println("3. Return book");
+            System.out.println("4. Search");
+            System.out.println("5. View orders");
+            System.out.println("6. Exit");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    librarySystem.viewBooks();
+                    break;
+
+                case 2:
+                    borrowBook(scanner, librarySystem, user);
+                    break;
+
+                case 3:
+                    returnBook(scanner, librarySystem, user);
+                    break;
+
+                case 4:
+                    searchBooks(scanner, librarySystem);
+                    break;
+
+                case 5:
+                    librarySystem.printUserBorrowedBooks(user);
+                    break;
+
+                case 6:
+                    System.out.println("Are you sure you want to quit?");
+                    System.out.println("1. Yes");
+                    System.out.println("2. Main menu");
+
+                    int exitChoice = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
+
+                    if (exitChoice == 1) {
+                        System.out.println("Thank you for using the Library Management System. Goodbye!");
+                        return;
+                    } else {
+                        return; // Return to main menu
+                    }
+
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void addBook(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter ISBN: ");
+        var isbn = scanner.nextLine();
+        System.out.print("Enter Title: ");
+        var title = scanner.nextLine();
+        System.out.print("Enter Author: ");
+        var author = scanner.nextLine();
+
+        var book = new Book(isbn, title, author, true);
+        librarySystem.addBook(book);
+    }
+
+    private static void deleteBook(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter ISBN of the book to delete: ");
+        var isbn = scanner.nextLine();
+        librarySystem.deleteBook(isbn);
+    }
+
+    private static void searchBooks(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter search keyword: ");
+        var keyword = scanner.nextLine();
+        librarySystem.searchBooks(keyword);
+    }
+
+    private static void borrowBook(Scanner scanner, LibrarySystem librarySystem, User user) {
+        System.out.print("Enter book title to borrow: ");
+        var title = scanner.nextLine();
+        var book = librarySystem.findBookByTitle(title);
+
+        book.ifPresentOrElse(
+            b -> librarySystem.borrowBook(user, b),
+            () -> System.out.println("Book not found.")
+        );
+    }
+
+    private static void returnBook(Scanner scanner, LibrarySystem librarySystem, User user) {
+        System.out.print("Enter book title to return: ");
+        var title = scanner.nextLine();
+        var book = librarySystem.findBookByTitle(title);
+
+        book.ifPresentOrElse(
+            b -> librarySystem.returnBook(user, b),
+            () -> System.out.println("Book not found.")
+        );
+    }
+
+    private static void viewOrders(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter user email to view borrowed books: ");
+        var email = scanner.nextLine();
+        var user = librarySystem.findUserByEmail(email);
+
+        user.ifPresentOrElse(
+            u -> librarySystem.printUserBorrowedBooks(u),
+            () -> System.out.println("User not found.")
+        );
+    }
+}
+
+class LoginResult {
+    private final User user;
+    private final boolean isAdmin;
+
+    public LoginResult(User user, boolean isAdmin) {
+        this.user = user;
+        this.isAdmin = isAdmin;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+}
+

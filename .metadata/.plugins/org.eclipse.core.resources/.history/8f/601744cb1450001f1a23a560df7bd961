@@ -1,0 +1,130 @@
+package libraryManagement;
+package librarymanagement;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+public class LibrarySystem implements Borrowable, Returnable {
+    private final Map<String, Book> books = new ConcurrentHashMap<>();
+    private final Map<String, User> users = new ConcurrentHashMap<>();
+    private final Map<User, List<Book>> borrowedBooks = new ConcurrentHashMap<>();
+
+    @Override
+    public void borrowBook(User user, Book book) {
+        if (!books.containsKey(book.getIsbn())) {
+            System.out.println("Book not found.");
+            return;
+        }
+
+        if (!book.isAvailable()) {
+            System.out.println("Book is not available.");
+            return;
+        }
+
+        borrowedBooks.computeIfAbsent(user, k -> new ArrayList<>()).add(book);
+        book.setAvailable(false);
+        System.out.println("Book borrowed successfully: " + book);
+    }
+
+    @Override
+    public void returnBook(User user, Book book) {
+        if (!books.containsKey(book.getIsbn())) {
+            System.out.println("Book not found.");
+            return;
+        }
+
+        List<Book> userBooks = borrowedBooks.get(user);
+        if (userBooks == null || !userBooks.contains(book)) {
+            System.out.println("User did not borrow this book.");
+            return;
+        }
+
+        userBooks.remove(book);
+        book.setAvailable(true);
+        System.out.println("Book returned successfully: " + book);
+    }
+
+    public void addBook(Book book) {
+        books.put(book.getIsbn(), book);
+        System.out.println("Book added: " + book);
+    }
+
+    public void deleteBook(String isbn) {
+        if (books.remove(isbn) != null) {
+            System.out.println("Book deleted with ISBN: " + isbn);
+        } else {
+            System.out.println("No books found with ISBN: " + isbn);
+        }
+    }
+
+    public void deleteAllBooks() {
+        books.clear();
+        System.out.println("All books deleted.");
+    }
+
+    public void addUser(User user) {
+        users.put(user.getEmail(), user);
+        System.out.println("User added: " + user);
+    }
+
+    public void removeUser(User user) {
+        users.remove(user.getEmail());
+        borrowedBooks.remove(user);
+        System.out.println("User removed: " + user);
+    }
+
+    public void removeAllUsers() {
+        users.clear();
+        borrowedBooks.clear();
+        System.out.println("All users removed.");
+    }
+
+    public Optional<Book> findBookByTitle(String title) {
+        return books.values().stream()
+            .filter(b -> b.getTitle().equalsIgnoreCase(title))
+            .findFirst();
+    }
+
+    public Optional<User> findUserByEmail(String email) {
+        return Optional.ofNullable(users.get(email));
+    }
+
+    public void viewBooks() {
+        if (books.isEmpty()) {
+            System.out.println("No books available.");
+        } else {
+            books.values().forEach(System.out::println);
+        }
+    }
+
+    public void searchBooks(String keyword) {
+        List<Book> results = books.values().stream()
+            .filter(b -> b.getTitle().toLowerCase().contains(keyword.toLowerCase()))
+            .collect(Collectors.toList());
+
+        if (results.isEmpty()) {
+            System.out.println("No books found for keyword: " + keyword);
+        } else {
+            results.forEach(System.out::println);
+        }
+    }
+
+    public void printUserBorrowedBooks(User user) {
+        List<Book> books = borrowedBooks.get(user);
+
+        if (books == null || books.isEmpty()) {
+            System.out.println("No borrowed books for user: " + user);
+        } else {
+            books.forEach(System.out::println);
+        }
+    }
+
+    public void viewAllUsers() {
+        if (users.isEmpty()) {
+            System.out.println("No users available.");
+        } else {
+            users.values().forEach(System.out::println);
+        }
+    }
+}

@@ -1,0 +1,94 @@
+package libraryManagement;
+
+import java.util.*;
+
+public class Library implements Borrow, Return {
+    private static List<Book> books = new ArrayList<>();
+    private static Map<String, User> users = new HashMap<>();
+
+    static {
+        books.add(new Book("Book1", "Author1", "ISBN1", 5));
+        books.add(new Book("Book2", "Author2", "ISBN2", 3));
+        books.add(new Book("Book3", "Author3", "ISBN3", 2));
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter your name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter your ID: ");
+        String id = scanner.nextLine();
+        System.out.print("Enter your user number: ");
+        String userNumber = scanner.nextLine();
+
+        User user;
+        if (users.containsKey(id)) {
+            user = users.get(id);
+            System.out.println("Welcome back, " + user.getName());
+        } else {
+            user = new User(name, id, userNumber);
+            users.put(id, user);
+            System.out.println("New user added: " + user.getName());
+        }
+
+        Library library = new Library();
+
+        while (true) {
+            System.out.println("Enter 1 to view books or 0 to exit:");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            if (choice == 1) {
+                library.viewBooks();
+                System.out.print("Enter ISBN of the book to borrow or type 'exit' to leave: ");
+                String input = scanner.nextLine();
+
+                if (input.equalsIgnoreCase("exit")) {
+                    System.out.println("Thanks for visiting. Have a great day!");
+                    break;
+                } else {
+                    Book book = library.findBookByIsbn(input);
+
+                    if (book != null && book.getCount() > 0) {
+                        library.borrowBook(book, user);
+                        System.out.println("Book borrowed successfully. Due date is in 14 days.");
+                    } else {
+                        System.out.println("Book not available.");
+                    }
+                }
+            } else {
+                System.out.println("Thanks for visiting. Have a great day!");
+                break;
+            }
+        }
+
+        scanner.close();
+    }
+
+    @Override
+    public void borrowBook(Book book, User user) {
+        book.setCount(book.getCount() - 1);
+    }
+
+    @Override
+    public void returnBook(Book book, User user) {
+        book.setCount(book.getCount() + 1);
+    }
+
+    public void viewBooks() {
+        for (Book book : books) {
+            System.out.println(book.getTitle() + " by " + book.getAuthor() + " - ISBN: " + book.getIsbn() + " - Available: " + book.getCount());
+        }
+    }
+
+    public Book findBookByIsbn(String isbn) {
+        for (Book book : books) {
+            if (book.getIsbn().equals(isbn)) {
+                return book;
+            }
+        }
+        return null;
+    }
+}
+

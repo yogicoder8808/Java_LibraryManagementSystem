@@ -1,0 +1,5 @@
+package libraryManagement;
+
+public interface Return {
+    void returnBook(Book book, User user);
+}

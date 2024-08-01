@@ -1,0 +1,110 @@
+package libraryManagement;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class LibrarySystem implements Borrowable, Returnable {
+
+    private static final List<Book> books = new ArrayList<>();
+    private static final Map<String, User> users = new HashMap<>();
+    private static final Map<User, List<Book>> borrowedBooks = new HashMap<>();
+
+    static {
+        // Initialize with some books
+        books.add(new Book("1234567890", "Book One", "Author A", true));
+        books.add(new Book("0987654321", "Book Two", "Author B", true));
+    }
+
+    @Override
+    public void borrowBook(User user, Book book) {
+        if (book.isAvailable()) {
+            book.setAvailable(false);
+            borrowedBooks.computeIfAbsent(user, k -> new ArrayList<>()).add(book);
+            System.out.println("Book borrowed: " + book);
+        } else {
+            System.out.println("Book is not available.");
+        }
+    }
+
+    @Override
+    public void returnBook(User user, Book book) {
+        List<Book> borrowed = borrowedBooks.get(user);
+        if (borrowed != null && borrowed.remove(book)) {
+            book.setAvailable(true);
+            System.out.println("Book returned: " + book);
+        } else {
+            System.out.println("This book was not borrowed by you.");
+        }
+    }
+
+    public void addBook(Book book) {
+        books.add(book);
+        System.out.println("Book added: " + book);
+    }
+
+    public void deleteBook(String isbn) {
+        books.removeIf(b -> b.getIsbn().equals(isbn));
+        System.out.println("Book deleted with ISBN: " + isbn);
+    }
+
+    public void deleteAllBooks() {
+        books.clear();
+        System.out.println("All books deleted.");
+    }
+
+    public void addUser(User user) {
+        users.put(user.getEmail(), user);
+    }
+
+    public void removeAllUsers() {
+        users.clear();
+        borrowedBooks.clear();
+        System.out.println("All users deleted.");
+    }
+
+    public Optional<Book> findBookByTitle(String title) {
+        return books.stream()
+                    .filter(b -> b.getTitle().equalsIgnoreCase(title))
+                    .findFirst();
+    }
+
+    public Optional<User> findUserByEmail(String email) {
+        return Optional.ofNullable(users.get(email));
+    }
+
+    public void viewBooks() {
+        if (books.isEmpty()) {
+            System.out.println("No books available.");
+        } else {
+            books.forEach(System.out::println);
+        }
+    }
+
+    public void searchBooks(String keyword) {
+        List<Book> result = books.stream()
+                                 .filter(b -> b.getTitle().contains(keyword) || b.getAuthor().contains(keyword))
+                                 .collect(Collectors.toList());
+        if (result.isEmpty()) {
+            System.out.println("No books found matching: " + keyword);
+        } else {
+            result.forEach(System.out::println);
+        }
+    }
+
+    public void printUserBorrowedBooks(User user) {
+        List<Book> borrowed = borrowedBooks.get(user);
+        if (borrowed == null || borrowed.isEmpty()) {
+            System.out.println("No borrowed books for user: " + user.getName());
+        } else {
+            borrowed.forEach(System.out::println);
+        }
+    }
+
+    public void viewAllUsers() {
+        if (users.isEmpty()) {
+            System.out.println("No users registered.");
+        } else {
+            users.values().forEach(System.out::println);
+        }
+    }
+}

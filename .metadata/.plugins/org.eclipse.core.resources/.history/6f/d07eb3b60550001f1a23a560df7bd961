@@ -1,0 +1,272 @@
+package libraryManagement;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class LibrarySystem implements Borrowable, Returnable {
+    private static final Map<String, Book> books = new HashMap<>();
+    private static final Map<String, User> users = new HashMap<>();
+    private final Scanner scanner = new Scanner(System.in);
+
+    static {
+        // Sample books
+        books.put("978-3-16-148410-0", new Book("978-3-16-148410-0", "Java Programming", "Author A", true));
+        books.put("978-1-23-456789-7", new Book("978-1-23-456789-7", "Data Structures", "Author B", true));
+    }
+
+    public static void main(String[] args) {
+        LibrarySystem system = new LibrarySystem();
+        system.mainMenu();
+    }
+
+    private void mainMenu() {
+        while (true) {
+            System.out.println("Welcome to Library Management System!");
+            System.out.println("0.Exit");
+            System.out.println("1.Login");
+            System.out.println("2.New User");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 0:
+                    System.out.println("Thanks for using the Library Management System. Goodbye!");
+                    return;
+                case 1:
+                    loginMenu();
+                    break;
+                case 2:
+                    newUserMenu();
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void loginMenu() {
+        System.out.println("Enter user name:");
+        String name = scanner.nextLine();
+        System.out.println("Enter Phone number:");
+        String phone = scanner.nextLine();
+        System.out.println("Enter Email ID:");
+        String email = scanner.nextLine();
+
+        User user = users.get(name);
+        if (user == null) {
+            System.out.println("New user added. Welcome " + name + "!");
+            user = new User(name, phone, email);
+            users.put(name, user);
+        } else {
+            System.out.println("User already present.");
+        }
+
+        System.out.println("1.Admin");
+        System.out.println("2.Normal User");
+        int roleChoice = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        switch (roleChoice) {
+            case 1:
+                staffMenu();
+                break;
+            case 2:
+                userMenu();
+                break;
+            default:
+                System.out.println("Invalid choice. Returning to main menu.");
+        }
+    }
+
+    private void newUserMenu() {
+        System.out.println("Enter user name:");
+        String name = scanner.nextLine();
+        System.out.println("Enter Phone number:");
+        String phone = scanner.nextLine();
+        System.out.println("Enter Email ID:");
+        String email = scanner.nextLine();
+
+        User user = new User(name, phone, email);
+        users.put(name, user);
+        System.out.println("New user added. Welcome " + name + "!");
+
+        loginMenu();
+    }
+
+    private void staffMenu() {
+        while (true) {
+            System.out.println("Staff Menu:");
+            System.out.println("1.View books");
+            System.out.println("2.Add book");
+            System.out.println("3.Delete book");
+            System.out.println("4.Delete all data");
+            System.out.println("5.Search");
+            System.out.println("6.View orders");
+            System.out.println("7.Exit");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    viewBooks();
+                    break;
+                case 2:
+                    addBook();
+                    break;
+                case 3:
+                    deleteBook();
+                    break;
+                case 4:
+                    deleteAllData();
+                    break;
+                case 5:
+                    searchBook();
+                    break;
+                case 6:
+                    viewOrders();
+                    break;
+                case 7:
+                    System.out.println("Are you sure that you want to quit?");
+                    System.out.println("1.Yes");
+                    System.out.println("2.Main menu");
+
+                    int exitChoice = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
+
+                    if (exitChoice == 1) {
+                        System.out.println("Thanks and goodbye!");
+                        return;
+                    }
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void userMenu() {
+        while (true) {
+            System.out.println("User Menu:");
+            System.out.println("1.View books");
+            System.out.println("2.Borrow book");
+            System.out.println("3.Return book");
+            System.out.println("4.Search");
+            System.out.println("5.View orders");
+            System.out.println("6.Exit");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    viewBooks();
+                    break;
+                case 2:
+                    borrowBook();
+                    break;
+                case 3:
+                    returnBook();
+                    break;
+                case 4:
+                    searchBook();
+                    break;
+                case 5:
+                    viewOrders();
+                    break;
+                case 6:
+                    System.out.println("Are you sure that you want to quit?");
+                    System.out.println("1.Yes");
+                    System.out.println("2.Main menu");
+
+                    int exitChoice = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
+
+                    if (exitChoice == 1) {
+                        System.out.println("Thanks and goodbye!");
+                        return;
+                    }
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void viewBooks() {
+        System.out.println("Available Books:");
+        books.values().forEach(System.out::println);
+    }
+
+    private void addBook() {
+        System.out.println("Enter ISBN:");
+        String isbn = scanner.nextLine();
+        System.out.println("Enter Title:");
+        String title = scanner.nextLine();
+        System.out.println("Enter Author:");
+        String author = scanner.nextLine();
+        System.out.println("Enter Availability (true/false):");
+        boolean isAvailable = scanner.nextBoolean();
+        scanner.nextLine(); // Consume newline
+
+        books.put(isbn, new Book(isbn, title, author, isAvailable));
+        System.out.println("Book added successfully.");
+    }
+
+    private void deleteBook() {
+        System.out.println("Enter ISBN of book to delete:");
+        String isbn = scanner.nextLine();
+        books.remove(isbn);
+        System.out.println("Book removed successfully.");
+    }
+
+    private void deleteAllData() {
+        books.clear();
+        users.clear();
+        System.out.println("All data deleted successfully.");
+    }
+
+    private void searchBook() {
+        System.out.println("Enter ISBN to search:");
+        String isbn = scanner.nextLine();
+        Book book = books.get(isbn);
+        if (book != null) {
+            System.out.println("Book found: " + book);
+        } else {
+            System.out.println("Book not found.");
+        }
+    }
+
+    private void viewOrders() {
+        // This functionality could be implemented based on your order management logic.
+        System.out.println("No orders yet.");
+    }
+
+    @Override
+    public boolean borrowBook(String bookISBN) {
+        Book book = books.get(bookISBN);
+        if (book != null && book.isAvailable()) {
+            book.setAvailable(false);
+            System.out.println("Book borrowed successfully.");
+            return true;
+        } else {
+            System.out.println("Book is not available.");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean returnBook(String bookISBN) {
+        Book book = books.get(bookISBN);
+        if (book != null) {
+            book.setAvailable(true);
+            System.out.println("Book returned successfully.");
+            return true;
+        } else {
+            System.out.println("Invalid book ISBN.");
+            return false;
+        }
+    }
+}
+

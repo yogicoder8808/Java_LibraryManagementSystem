@@ -1,0 +1,4 @@
+INDEX VERSION 1.134+C:\Users\yoges\library-management\.metadata\.plugins\org.eclipse.jdt.core
+1687344826.index
+1865797976.index
+4207606346.index

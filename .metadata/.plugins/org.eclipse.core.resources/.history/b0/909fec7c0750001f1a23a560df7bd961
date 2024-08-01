@@ -1,0 +1,6 @@
+package libraryManagement;
+
+public interface Borrowable {
+    boolean borrowBook(String bookISBN);
+}
+

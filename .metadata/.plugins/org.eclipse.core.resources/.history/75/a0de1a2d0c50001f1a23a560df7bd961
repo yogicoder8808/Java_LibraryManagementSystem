@@ -1,0 +1,111 @@
+package libraryManagement;
+
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+public class LibrarySystem implements Borrowable, Returnable {
+    private static final List<Book> books = new ArrayList<>();
+    private static final Map<String, User> users = new HashMap<>();
+    private static final Map<User, List<Book>> borrowedBooks = new HashMap<>();
+
+    static {
+        // Adding some books to the static block
+        books.add(new Book("978-3-16-148410-0", "The Great Gatsby", "F. Scott Fitzgerald", true));
+        books.add(new Book("978-1-56619-909-4", "1984", "George Orwell", true));
+        books.add(new Book("978-0-7432-7356-5", "To Kill a Mockingbird", "Harper Lee", true));
+    }
+
+    @Override
+    public void borrowBook(User user, Book book) {
+        if (book.isAvailable()) {
+            book.setAvailable(false);
+            user.borrowBook(book);
+            borrowedBooks.computeIfAbsent(user, k -> new ArrayList<>()).add(book);
+            System.out.println("Book borrowed: " + book);
+        } else {
+            System.out.println("Book not available or not found.");
+        }
+    }
+
+    @Override
+    public void returnBook(User user, Book book) {
+        List<Book> userBooks = borrowedBooks.getOrDefault(user, Collections.emptyList());
+        if (userBooks.contains(book)) {
+            book.setAvailable(true);
+            user.returnBook(book);
+            borrowedBooks.get(user).remove(book);
+            System.out.println("Book returned: " + book);
+        } else {
+            System.out.println("No record of borrowing this book.");
+        }
+    }
+
+    public void addBook(Book book) {
+        books.add(book);
+        System.out.println("Book added: " + book);
+    }
+
+    public void deleteBook(String isbn) {
+        books.removeIf(book -> book.getIsbn().equals(isbn));
+        System.out.println("Book with ISBN " + isbn + " removed.");
+    }
+
+    public void deleteAllBooks() {
+        books.clear();
+        System.out.println("All books deleted.");
+    }
+
+    public void addUser(User user) {
+        users.put(user.getEmail(), user);
+        System.out.println("User added: " + user);
+    }
+
+    public void removeAllUsers() {
+        users.clear();
+        borrowedBooks.clear();
+        System.out.println("All users and borrowed records deleted.");
+    }
+
+    public Optional<User> findUserByEmail(String email) {
+        return Optional.ofNullable(users.get(email));
+    }
+
+    public Optional<Book> findBookByTitle(String title) {
+        return books.stream()
+                    .filter(book -> book.getTitle().equalsIgnoreCase(title))
+                    .findFirst();
+    }
+
+    public void viewBooks() {
+        if (books.isEmpty()) {
+            System.out.println("No books available.");
+            return;
+        }
+        System.out.println("Books available:");
+        books.forEach(System.out::println); // Method reference
+    }
+
+    public void searchBooks(String keyword) {
+        Predicate<Book> containsKeyword = book -> book.getTitle().contains(keyword) || book.getAuthor().contains(keyword);
+        List<Book> result = books.stream()
+                                 .filter(containsKeyword)
+                                 .collect(Collectors.toList());
+        
+        if (result.isEmpty()) {
+            System.out.println("No books found with keyword: " + keyword);
+        } else {
+            result.forEach(System.out::println); // Method reference
+        }
+    }
+
+    public void printUserBorrowedBooks(User user) {
+        List<Book> books = borrowedBooks.getOrDefault(user, Collections.emptyList());
+        if (books.isEmpty()) {
+            System.out.println(user.getName() + " has not borrowed any books.");
+        } else {
+            System.out.println(user.getName() + "'s borrowed books:");
+            books.forEach(System.out::println); // Method reference
+        }
+    }
+}

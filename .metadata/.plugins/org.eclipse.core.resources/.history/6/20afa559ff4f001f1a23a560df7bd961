@@ -1,0 +1,10 @@
+package libraryManagement;
+
+public interface Borrow {
+    void borrowBook(Book book, User user);
+}
+
+public interface Return {
+    void returnBook(Book book, User user);
+}
+

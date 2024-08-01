@@ -1,0 +1,279 @@
+package libraryManagement;
+
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        LibrarySystem librarySystem = new LibrarySystem();
+        Scanner scanner = new Scanner(System.in);
+
+        // Main menu
+        while (true) {
+            System.out.println("Welcome to Library Management System!");
+            System.out.println("0. Exit");
+            System.out.println("1. Login");
+            System.out.println("2. New User");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 0:
+                    System.out.println("Thank you for using the Library Management System. Goodbye!");
+                    return;
+
+                case 1:
+                    // Login process
+                    handleLogin(scanner, librarySystem);
+                    break;
+
+                case 2:
+                    // New user registration
+                    handleNewUser(scanner, librarySystem);
+                    break;
+
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void handleLogin(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter user email: ");
+        String email = scanner.nextLine();
+        if (librarySystem.isUserExists(email)) {
+            // Existing user - show user or staff menu
+            showUserOrStaffMenu(scanner, librarySystem);
+        } else {
+            System.out.println("User not found. Please register as a new user.");
+        }
+    }
+
+    private static void handleNewUser(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter phone number: ");
+        String phoneNumber = scanner.nextLine();
+        System.out.print("Enter email ID: ");
+        String email = scanner.nextLine();
+
+        if (!librarySystem.isUserExists(email)) {
+            User newUser = new User(username, phoneNumber, email);
+            librarySystem.addUser(newUser);
+            System.out.println("New user added: " + newUser);
+        } else {
+            System.out.println("User already exists.");
+        }
+        // Show menu for user or staff after registration
+        showUserOrStaffMenu(scanner, librarySystem);
+    }
+
+    private static void showUserOrStaffMenu(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.println("Are you a:");
+        System.out.println("1. Admin");
+        System.out.println("2. Normal User");
+
+        int choice = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        switch (choice) {
+            case 1:
+                // Admin menu
+                showAdminMenu(scanner, librarySystem);
+                break;
+
+            case 2:
+                // Normal user menu
+                showUserMenu(scanner, librarySystem);
+                break;
+
+            default:
+                System.out.println("Invalid choice. Returning to main menu.");
+        }
+    }
+
+    private static void showAdminMenu(Scanner scanner, LibrarySystem librarySystem) {
+        while (true) {
+            System.out.println("Admin Menu:");
+            System.out.println("1. View books");
+            System.out.println("2. Add book");
+            System.out.println("3. Delete book");
+            System.out.println("4. Delete all data");
+            System.out.println("5. Search");
+            System.out.println("6. View orders");
+            System.out.println("7. Exit");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    librarySystem.viewBooks();
+                    break;
+
+                case 2:
+                    addBook(scanner, librarySystem);
+                    break;
+
+                case 3:
+                    deleteBook(scanner, librarySystem);
+                    break;
+
+                case 4:
+                    librarySystem.deleteAllBooks();
+                    librarySystem.removeAllUsers();
+                    break;
+
+                case 5:
+                    searchBooks(scanner, librarySystem);
+                    break;
+
+                case 6:
+                    // Assuming view orders means viewing borrowed books
+                    viewOrders(scanner, librarySystem);
+                    break;
+
+                case 7:
+                    System.out.println("Are you sure you want to quit?");
+                    System.out.println("1. Yes");
+                    System.out.println("2. Main menu");
+
+                    int exitChoice = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
+
+                    if (exitChoice == 1) {
+                        System.out.println("Thank you for using the Library Management System. Goodbye!");
+                        return;
+                    } else {
+                        return; // Return to main menu
+                    }
+
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void showUserMenu(Scanner scanner, LibrarySystem librarySystem) {
+        while (true) {
+            System.out.println("User Menu:");
+            System.out.println("1. View books");
+            System.out.println("2. Borrow book");
+            System.out.println("3. Return book");
+            System.out.println("4. Search");
+            System.out.println("5. View orders");
+            System.out.println("6. Exit");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    librarySystem.viewBooks();
+                    break;
+
+                case 2:
+                    borrowBook(scanner, librarySystem);
+                    break;
+
+                case 3:
+                    returnBook(scanner, librarySystem);
+                    break;
+
+                case 4:
+                    searchBooks(scanner, librarySystem);
+                    break;
+
+                case 5:
+                    // Assuming view orders means viewing borrowed books
+                    viewOrders(scanner, librarySystem);
+                    break;
+
+                case 6:
+                    System.out.println("Are you sure you want to quit?");
+                    System.out.println("1. Yes");
+                    System.out.println("2. Main menu");
+
+                    int exitChoice = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
+
+                    if (exitChoice == 1) {
+                        System.out.println("Thank you for using the Library Management System. Goodbye!");
+                        return;
+                    } else {
+                        return; // Return to main menu
+                    }
+
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void addBook(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter ISBN: ");
+        String isbn = scanner.nextLine();
+        System.out.print("Enter Title: ");
+        String title = scanner.nextLine();
+        System.out.print("Enter Author: ");
+        String author = scanner.nextLine();
+
+        Book book = new Book(isbn, title, author, true);
+        librarySystem.addBook(book);
+    }
+
+    private static void deleteBook(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter ISBN of the book to delete: ");
+        String isbn = scanner.nextLine();
+        librarySystem.deleteBook(isbn);
+    }
+
+    private static void searchBooks(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter search keyword: ");
+        String keyword = scanner.nextLine();
+        librarySystem.searchBooks(keyword);
+    }
+
+    private static void borrowBook(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter user email: ");
+        String email = scanner.nextLine();
+        User user = librarySystem.findUserByEmail(email);
+
+        if (user != null) {
+            System.out.print("Enter book title to borrow: ");
+            String title = scanner.nextLine();
+            librarySystem.borrowBook(user, title);
+        } else {
+            System.out.println("User not found.");
+        }
+    }
+
+    private static void returnBook(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter user email: ");
+        String email = scanner.nextLine();
+        User user = librarySystem.findUserByEmail(email);
+
+        if (user != null) {
+            System.out.print("Enter book title to return: ");
+            String title = scanner.nextLine();
+            librarySystem.returnBook(user, title);
+        } else {
+            System.out.println("User not found.");
+        }
+    }
+
+    private static void viewOrders(Scanner scanner, LibrarySystem librarySystem) {
+        System.out.print("Enter user email to view borrowed books: ");
+        String email = scanner.nextLine();
+        User user = librarySystem.findUserByEmail(email);
+
+        if (user != null) {
+            librarySystem.printUserBorrowedBooks(user);
+        } else {
+            System.out.println("User not found.");
+        }
+    }
+}
+
+
+

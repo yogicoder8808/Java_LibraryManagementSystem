@@ -1,0 +1,98 @@
+//package libraryManagement;
+//
+//import java.util.ArrayList;
+//import java.util.List;
+//
+//public class User {
+//    private String name;
+//    private String email;
+//    private String phoneNumber;
+//    private List<Book> borrowedBooks = new ArrayList<>();
+//
+//    public User(String name, String email, String phoneNumber) {
+//        this.name = name;
+//        this.email = email;
+//        this.phoneNumber = phoneNumber;
+//    }
+//
+//    public String getName() {
+//        return name;
+//    }
+//
+//    public void setName(String name) {
+//        this.name = name;
+//    }
+//
+//    public String getEmail() {
+//        return email;
+//    }
+//
+//    public void setEmail(String email) {
+//        this.email = email;
+//    }
+//
+//    public String getPhoneNumber() {
+//        return phoneNumber;
+//    }
+//
+//    public void setPhoneNumber(String phoneNumber) {
+//        this.phoneNumber = phoneNumber;
+//    }
+//
+//    public List<Book> getBorrowedBooks() {
+//        return borrowedBooks;
+//    }
+//
+//    public void borrowBook(Book book) {
+//        borrowedBooks.add(book);
+//    }
+//
+//    public void returnBook(Book book) {
+//        borrowedBooks.remove(book);
+//    }
+//
+//    @Override
+//    public String toString() {
+//        return "User{" +
+//               "Name='" + name + '\'' +
+//               ", Email='" + email + '\'' +
+//               ", Phone Number='" + phoneNumber + '\'' +
+//               '}';
+//    }
+//}
+
+
+
+package libraryManagement;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public record User(char name, String email, int phoneNumber, List<Book> borrowedBooks) {
+    public User(char name, String email, int phoneNumber) {
+        this(name, email, phoneNumber, new ArrayList<>());
+    }
+
+    public List<Book> borrowedBooks() {
+        return Collections.unmodifiableList(borrowedBooks);
+    }
+
+    public void borrowBook(Book book) {
+        borrowedBooks.add(book);
+    }
+
+    public void returnBook(Book book) {
+        borrowedBooks.remove(book);
+    }
+}
+
+
+
+
+
+
+
+
+
+
